@@ -1,23 +1,7 @@
-#
-# Copyright 2021 The Sigstore Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 services:
   fulcio-server:
-    build:
-      context: .
-      target: "deploy"
+    image: docker.io/venerayan/fulcio_fulcio-server:latest
     command: [
       "fulcio-server",
       "serve",
@@ -25,20 +9,24 @@ services:
       "--port=5555",
       "--grpc-port=5554",
       "--ca=ephemeralca",
+      # "--ca=fileca",
+      # "--fileca-key=/ca/fulcio.key", 
+      # "--fileca-cert=/ca/fulcio.crt",
+      # "--fileca-key-passwd=changeit",
+      "--config-path=/ca/fulcio-config.yaml",
       "--ct-log-url=https://ct_server:6962/test",
-      "--ct-log.tls-ca-cert=/config/tls/ca.crt",
+      "--ct-log.tls-ca-cert=/ca/ca.crt",
       # Uncomment this for production logging
-      # "--log_type=prod",
+      "--log_type=prod",
       ]
     restart: always # keep the server running
     ports:
-      - "5555:5555"
+      - "49174:5555"
       - "5554:5554"
       - "${FULCIO_METRICS_PORT:-2112}:2112"
     volumes:
-      - ~/.config/gcloud:/root/.config/gcloud/:z # for GCP authentication
-      - ${FULCIO_CONFIG:-./config/identity/config.yaml}:/etc/fulcio-config/config.yaml:z
-      - ./config/tls:/config/tls:z
+      - rvenera_ca:/ca
+      - rvenera_ca:/config/tls
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5555/healthz"]
       interval: 10s
@@ -50,9 +38,7 @@ services:
         condition: service_healthy
     read_only: true
   dex-idp:
-    build:
-      context: .
-      dockerfile: Dockerfile.dex-idp
+    image: docker.io/venerayan/venerayan/fulcio_dex-idp:latest
     user: root
     command: [
       "dex",
@@ -69,23 +55,19 @@ services:
       retries: 3
       start_period: 5s
   ctfe_init:
-    build:
-      context: .
-      dockerfile: Dockerfile.ctfe_init
+    image: docker.io/venerayan/fulcio_ctfe_init:latest
     depends_on:
       trillian-log-server:
         condition: service_started
       fulcio-server:
         condition: service_healthy
     volumes:
-      - ctfeConfig:/etc/config/:rw
+      - rvenera_ctfe:/etc/config/:rw
   ct_server:
-    build:
-      context: .
-      dockerfile: Dockerfile.ct_server
+    image: docker.io/venerayan/venerayan/fulcio_ct_server:latest
     volumes:
-      - ctfeConfig:/etc/config/:ro
-      - ./config/tls:/config/tls:z
+      - rvenera_ctfe:/etc/config/:ro
+      - rvenera_ca:/config/tls      
     command: [
         "--log_config" ,"/etc/config/ct_server.cfg",
         "--log_rpc_server", "trillian-log-server:8096",
@@ -112,7 +94,7 @@ services:
       - "6962:6962"
   mysql:
     platform: linux/amd64
-    image: gcr.io/trillian-opensource-ci/db_server:v1.7.2@sha256:c3d5e243a2995e6bd83479c59cf5f586244f0988f97429f44e3334da0a95a5d0
+    image: docker.io/venerayan/db_server:v1.7.2
     environment:
       - MYSQL_ROOT_PASSWORD=zaphod
       - MYSQL_DATABASE=test
@@ -120,15 +102,15 @@ services:
       - MYSQL_PASSWORD=zaphod
     restart: always # keep the MySQL server running
     healthcheck:
-      test: "mysqladmin -h 127.0.0.1 --user=$$MYSQL_USER --password=$$MYSQL_ROOT_PASSWORD -s ping" 
+      test: "mysqladmin -h 127.0.0.1 --user=$MYSQL_USER --password=$MYSQL_ROOT_PASSWORD -s ping" 
       interval: 10s
       timeout: 3s
       retries: 9
       start_period: 90s
     volumes:
-      - mysql:/var/lib/mysql
+      - rvenera_mysql:/var/lib/mysql
   trillian-log-server:
-    image: ghcr.io/sigstore/scaffolding/trillian_log_server:v0.7.24@sha256:2c677cab8e4fd9d5d71dc55db574caed93a3896ee8229e50a95c8d09625866db
+    image: docker.io/venerayan/trillian_log_server:v0.7.24
     command: [
       "--storage_system=mysql",
       "--mysql_uri=test:zaphod@tcp(mysql:3306)/test",
@@ -144,7 +126,7 @@ services:
       mysql:
         condition: service_healthy
   trillian-log-signer:
-    image: ghcr.io/sigstore/scaffolding/trillian_log_signer:v0.7.24@sha256:65ed1871a11d4bf2c1d0b7c1f8b5fbc90f842788edc577b90adb024dec03dbe2
+    image: docker.io/venerayan/trillian_log_signer:v0.7.24
     command: [
       "--storage_system=mysql",
       "--mysql_uri=test:zaphod@tcp(mysql:3306)/test",
@@ -160,5 +142,9 @@ services:
       mysql:
         condition: service_healthy
 volumes:
-  ctfeConfig: {}
-  mysql: {}
+  rvenera_ctfe:
+    external: true  
+  rvenera_mysql:
+    external: true  
+  rvenera_ca:
+    external: true
