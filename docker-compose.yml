@@ -21,7 +21,7 @@ services:
       ]
     restart: always # keep the server running
     ports:
-      - "49174:5555"
+      - "5555:5555"
       - "5554:5554"
       - "${FULCIO_METRICS_PORT:-2112}:2112"
     volumes:
