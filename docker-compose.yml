@@ -21,7 +21,7 @@ services:
       ]
     restart: always # keep the server running
     ports:
-      - "5555:5555"
+      - "49174:5555"
       - "5554:5554"
       - "2113:2112"
     volumes:
@@ -108,7 +108,7 @@ services:
       retries: 9
       start_period: 90s
     volumes:
-      - rvenera_mysql:/var/lib/mysql
+      - mysql:/var/lib/mysql
   trillian-log-server:
     image: docker.io/venerayan/trillian_log_server:v0.7.24
     command: [
