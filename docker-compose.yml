@@ -1,3 +1,4 @@
+version: "3"
 
 services:
   fulcio-server:
@@ -15,7 +16,7 @@ services:
       # "--fileca-key-passwd=changeit",
       "--config-path=/ca/fulcio-config.yaml",
       "--ct-log-url=https://ct_server:6962/test",
-      "--ct-log.tls-ca-cert=/ca/ca.crt",
+      "--ct-log.tls-ca-cert=/config/tls/ca.crt",
       # Uncomment this for production logging
       "--log_type=prod",
       ]
@@ -25,7 +26,6 @@ services:
       - "5554:5554"
       - "2113:2112"
     volumes:
-      - rvenera_ca:/ca
       - rvenera_ca:/config/tls
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5555/healthz"]
@@ -101,6 +101,9 @@ services:
       - MYSQL_USER=test
       - MYSQL_PASSWORD=zaphod
     restart: always # keep the MySQL server running
+    ports:
+      - "3306:3306"      
+      - "33060:33060"   
     healthcheck:
       test: "mysqladmin -h 127.0.0.1 --user=$MYSQL_USER --password=$MYSQL_ROOT_PASSWORD -s ping" 
       interval: 10s
