@@ -23,7 +23,7 @@ services:
     ports:
       - "5555:5555"
       - "5554:5554"
-      - "${FULCIO_METRICS_PORT:-2112}:2112"
+      - "2113:2112"
     volumes:
       - rvenera_ca:/ca
       - rvenera_ca:/config/tls
