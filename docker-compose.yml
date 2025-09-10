@@ -62,12 +62,12 @@ services:
       fulcio-server:
         condition: service_healthy
     volumes:
-      - rvenera_ctfe:/etc/config/:rw
+      - ctfeConfig:/etc/config/:rw
   ct_server:
     image: docker.io/venerayan/fulcio_ct_server:latest
     volumes:
-      - rvenera_ctfe:/etc/config/:ro
-      - rvenera_ca:/config/tls      
+      - ctfeConfig:/etc/config/:ro
+      - rvenera_ca:/config/tls:z      
     command: [
         "--log_config" ,"/etc/config/ct_server.cfg",
         "--log_rpc_server", "trillian-log-server:8096",
@@ -142,9 +142,7 @@ services:
       mysql:
         condition: service_healthy
 volumes:
-  rvenera_ctfe:
-    external: true  
-  rvenera_mysql:
-    external: true  
+  ctfeConfig: {}
+  mysql: {}
   rvenera_ca:
     external: true
