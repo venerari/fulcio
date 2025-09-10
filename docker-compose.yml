@@ -66,7 +66,7 @@ services:
   ct_server:
     image: docker.io/venerayan/fulcio_ct_server:latest
     volumes:
-      - ctfeConfig:/etc/config/:ro
+      - ctfeConfig:/etc/config/:rw #ro
       - rvenera_ca:/config/tls:z      
     command: [
         "--log_config" ,"/etc/config/ct_server.cfg",
