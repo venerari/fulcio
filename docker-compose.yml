@@ -14,7 +14,7 @@ services:
       # "--fileca-key=/ca/fulcio.key", 
       # "--fileca-cert=/ca/fulcio.crt",
       # "--fileca-key-passwd=changeit",
-      "--config-path=/ca/fulcio-config.yaml",
+      "--config-path=/config/tls/fulcio-config.yaml",
       "--ct-log-url=https://ct_server:6962/test",
       "--ct-log.tls-ca-cert=/config/tls/ca.crt",
       # Uncomment this for production logging
