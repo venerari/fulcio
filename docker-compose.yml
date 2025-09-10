@@ -38,7 +38,7 @@ services:
         condition: service_healthy
     read_only: true
   dex-idp:
-    image: docker.io/venerayan/venerayan/fulcio_dex-idp:latest
+    image: docker.io/venerayan/fulcio_dex-idp:latest
     user: root
     command: [
       "dex",
@@ -64,7 +64,7 @@ services:
     volumes:
       - rvenera_ctfe:/etc/config/:rw
   ct_server:
-    image: docker.io/venerayan/venerayan/fulcio_ct_server:latest
+    image: docker.io/venerayan/fulcio_ct_server:latest
     volumes:
       - rvenera_ctfe:/etc/config/:ro
       - rvenera_ca:/config/tls      
